@@ -1,80 +1,60 @@
 pipeline {
     agent any
-
-    tools {
-        maven "MAVEN_HOME"
-        jdk "JAVA_HOME"
-    }
-
+    
     environment {
-        DISABLE_AUTH = 'true'
-        DB_ENGINE    = 'sqlite'
+        SONAR_SCANNER_HOME = tool 'SonarQube Scanner'
+        MAVEN_HOME = tool 'maven'
     }
 
     stages {
-        stage('Hello') {
+        stage('Checkout') {
             steps {
-                echo "Database engine is ${DB_ENGINE}"
-                echo "DISABLE_AUTH is ${DISABLE_AUTH}"
-                echo "Running ${env.BUILD_ID} on ${env.JENKINS_URL}"
-                echo "Job Name: ${env.JOB_NAME}"
-                echo "Java Home: ${env.JAVA_HOME}"
+                // Reemplaza 'your_ssh_private_key' con el ID de la credencial de SSH que tienes configurada en Jenkins para acceder al repositorio
+                git credentialsId: 'your_ssh_private_key', url: 'git@github.com:HugoMartinThielemannMoreno/DevopsTestMerge.git'
             }
         }
-
-        stage('Git Polling') {
+        
+        stage('SonarQube Analysis') {
             steps {
-                git branch: 'master', credentialsId: 'coca', url: 'git@github.com:HugoMartinThielemannMoreno/rick-and-morty-api-client.git'
-            }
-        }
-
-        stage('BUILD CON MAVEN') {
-            steps {
-                sh "mvn -Dmaven.test.failure.ignore=true clean package"
-            }
-
-            post {
-                success {
-                    echo 'Archiving Artifacts'
-                    archiveArtifacts "target/*.jar"
+                withSonarQubeEnv('SonarQube') {
+                    sh "${env.SONAR_SCANNER_HOME}/bin/sonar-scanner -X -Dsonar.projectKey=sonarqube -Dsonar.sources=src/main/java -Dsonar.java.binaries=target/classes"
                 }
             }
         }
-
-        stage('Test Maven') {
+        
+        stage('Maven Build') {
             steps {
-                sh "mvn test"
+                sh "${env.MAVEN_HOME}/bin/mvn clean install"
             }
         }
-
-        stage('Test soapui') {
+        
+        stage('Test and Publish') {
             steps {
-                sh "${env.SOAPUI_HOME}/bin/testrunner.sh -s get-characters-test-suite -c get-characters-test-case -I /opt/REST-Project-1-soapui-project.xml"
+                sh "${env.MAVEN_HOME}/bin/mvn test"
+                junit 'target/surefire-reports/*.xml'
+                jacoco(execPattern: 'target/jacoco.exec')
             }
         }
-
-        stage('Execute Jmeter') {
+        
+        stage('Docker Build and Publish') {
             steps {
-                sh 'pwd'
-                sh 'mvn clean verify -Djmeter.version=5.6 -Djmeter.check.results.threshold=0'
+                sh 'docker login -u your_dockerhub_username -p your_dockerhub_password'
+                sh 'docker build -t bellyster/devops-integracion:0.0.1 .'
+                sh 'docker push bellyster/devops-integracion:0.0.1'
             }
         }
-    }
-
-post {
-    always {
-        script {
-            def errorThreshold = 0 // Establecer el umbral de aceptación en 0
-
-            // Leer los resultados de JMeter
-            def results = readFile('result.jtl')
-            def errorCount = results.tokenize('\n').findAll { it.contains('false') }.size()
-
-            // Verificar si se supera el umbral de errores
-            if (errorCount > errorThreshold) {
-                error "La cantidad de errores (${errorCount}) supera el umbral de aceptación (${errorThreshold})"
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Your deployment steps here
             }
         }
-    }
-}
+        
+        stage('Production Deployment') {
+            steps {
+                sh 'ngrok http 8080 &'
+                // Your ngrok configuration and webhook setup
+            }
+        }
+    }
 }
