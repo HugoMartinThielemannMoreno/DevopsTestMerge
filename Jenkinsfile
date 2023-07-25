@@ -36,7 +36,7 @@ pipeline {
             }
         }
         
-        stage('Docker Build and Publish') {
+        /* stage('Docker Build and Publish') {
             steps {
                 sh 'docker login -u your_dockerhub_username -p your_dockerhub_password'
                 sh 'docker build -t bellyster/devops-integracion:0.0.1 .'
@@ -55,6 +55,6 @@ pipeline {
                 sh 'ngrok http 8080 &'
                 // Your ngrok configuration and webhook setup
             }
-        }
+        } */
     }
 }
