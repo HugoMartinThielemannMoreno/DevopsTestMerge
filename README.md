@@ -1,4 +1,3 @@
-# prueba despliegue con webhook y tunel con ngrok
 # Proyecto Devops de la Kibernum Academy
 
 Este proyecto es una aplicación web de Spring Boot para la gestión de estudiantes.
@@ -24,13 +23,13 @@ Para instalar y ejecutar este proyecto necesitarás tener instalado:
 Primero, clona el repositorio:
 
 ```
-git clone https://github.com/yourusername/devops.git
+git clone https://github.com/HugoMartinThielemannMoreno/DevopsTestMerge.git
 ```
 
 Entra al directorio del proyecto:
 
 ```
-cd devops
+cd DevopsTestMerge
 ```
 
 Para compilar el proyecto y ejecutar las pruebas, ejecuta:
