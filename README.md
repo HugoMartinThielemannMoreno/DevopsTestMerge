@@ -1,7 +1,7 @@
 
 # Proyecto Devops de la Kibernum Academy
 
-Este proyecto es una aplicación web de Spring Boot para la gestión de estudiantes...cc
+Este proyecto es una aplicación web de Spring Boot para la gestión de estudiantes.
 
 ## Descripción
 
